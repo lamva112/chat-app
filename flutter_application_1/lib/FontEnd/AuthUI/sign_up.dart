@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_application_1/BackEnd/firebase/sign_up_auth.dart';
+import 'package:flutter_application_1/BackEnd/firebase/Auth/fb_auth.dart';
+import 'package:flutter_application_1/BackEnd/firebase/Auth/google_auth.dart';
+import 'package:flutter_application_1/BackEnd/firebase/Auth/sign_up_auth.dart';
 import 'package:flutter_application_1/FontEnd/AuthUI/comomAuthMethod.dart';
+import 'package:flutter_application_1/FontEnd/AuthUI/home_page.dart';
 import 'package:flutter_application_1/FontEnd/AuthUI/log_in.dart';
+import 'package:flutter_application_1/FontEnd/newUserEntry/new_user_entry.dart';
+import 'package:flutter_application_1/Global_uses/enum_generation.dart';
 import 'package:flutter_application_1/Global_uses/reg_exp.dart';
 import 'package:loading_overlay/loading_overlay.dart';
 
@@ -21,15 +26,18 @@ class _SIgnUpScreenState extends State<SIgnUpScreen> {
   final TextEditingController _conformPwd = TextEditingController();
 
   final EmailAndPasswordAuth _emailAndPasswordAuth = EmailAndPasswordAuth();
+  final GoogleAuthentication _googleAuthentication = GoogleAuthentication();
+  final FacebookAuthentication _facebookAuthentication =
+      FacebookAuthentication();
 
-  bool _isloading = false;
+  bool _isLoading = false;
   @override
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
       backgroundColor: const Color.fromRGBO(34, 48, 60, 1),
       body: LoadingOverlay(
-        isLoading: _isloading,
+        isLoading: _isLoading,
         child: Container(
           child: ListView(
             shrinkWrap: true,
@@ -75,6 +83,7 @@ class _SIgnUpScreenState extends State<SIgnUpScreen> {
                             }
                             if (this._pwd.text != this._conformPwd.text)
                               return 'Password and Conform Password Not Same Here';
+
                             return null;
                           },
                           textEditingController: this._conformPwd),
@@ -89,7 +98,7 @@ class _SIgnUpScreenState extends State<SIgnUpScreen> {
                   style: TextStyle(color: Colors.white70, fontSize: 20.0),
                 ),
               ),
-              socialMediaInterationButtons(),
+              signUpSocialMediaIntegrationButtons(),
               switchAnotherAuthScreen(
                   context, 'Already have an account?', 'Log-In'),
             ],
@@ -127,13 +136,153 @@ class _SIgnUpScreenState extends State<SIgnUpScreen> {
         onPressed: () async {
           if (_signUpKey.currentState!.validate()) {
             print('Validated');
+
+            if (mounted) {
+              setState(() {
+                this._isLoading = true;
+              });
+            }
+
             SystemChannels.textInput.invokeMethod('TextInput.hide');
 
-            _emailAndPasswordAuth.sinUpAuth(email: _email.text, pwd: _pwd.text);
+            final EmailSignUpResults response = await _emailAndPasswordAuth
+                .sinUpAuth(email: _email.text, pwd: _pwd.text);
+
+            if (response == EmailSignUpResults.SignUpCompleted) {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => TakePrimaryUserData()));
+            } else {
+              final String msg =
+                  response == EmailSignUpResults.EmailAlreadyPresent
+                      ? 'Email Already Present'
+                      : 'Sign Up Not Completed';
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(msg),
+                ),
+              );
+            }
           } else {
             print('Not Validated');
           }
+
+          if (mounted) {
+            setState(() {
+              this._isLoading = false;
+            });
+          }
         },
+      ),
+    );
+  }
+
+  Widget signUpSocialMediaIntegrationButtons() {
+    return Container(
+      width: double.maxFinite,
+      padding: EdgeInsets.all(30.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          GestureDetector(
+            onTap: () async {
+              print('Google Pressed');
+              if (mounted) {
+                setState(() {
+                  this._isLoading = true;
+                });
+              }
+
+              final GoogleSignInResults _googleSignInResults =
+                  await this._googleAuthentication.signInWithGoogle();
+
+              String msg = '';
+
+              if (_googleSignInResults == GoogleSignInResults.SignInCompleted) {
+                msg = 'Sign In Completed';
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => TakePrimaryUserData()));
+              } else if (_googleSignInResults ==
+                  GoogleSignInResults.SignInNotCompleted)
+                msg = 'Sign In not Completed';
+              else if (_googleSignInResults ==
+                  GoogleSignInResults.AlreadySignedIn)
+                msg = 'Already Google SignedIn';
+              else
+                msg = 'Unexpected Error Happen';
+
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: Text(msg)));
+
+              // if (_googleSignInResults == GoogleSignInResults.SignInCompleted) {
+              //   Navigator.pushAndRemoveUntil(
+              //       context,
+              //       MaterialPageRoute(builder: (_) => HomePage()),
+              //       (route) => false);
+              // }
+
+              if (mounted) {
+                setState(() {
+                  this._isLoading = false;
+                });
+              }
+            },
+            child: Image.asset(
+              'assets/images/google.png',
+              width: 50.0,
+            ),
+          ),
+          SizedBox(
+            width: 80.0,
+          ),
+          GestureDetector(
+            onTap: () async {
+              print('Facebook Pressed');
+
+              if (mounted) {
+                setState(() {
+                  this._isLoading = true;
+                });
+              }
+
+              final FBSignInResults _fbSignInResults =
+                  await this._facebookAuthentication.facebookLogIn();
+
+              String msg = '';
+
+              if (_fbSignInResults == FBSignInResults.SignInCompleted) {
+                msg = 'Sign In Completed';
+                Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => TakePrimaryUserData()),
+                    (route) => false);
+              } else if (_fbSignInResults == FBSignInResults.SignInNotCompleted)
+                msg = 'Sign In not Completed';
+              else if (_fbSignInResults == FBSignInResults.AlreadySignedIn)
+                msg = 'Already fb SignedIn';
+              else
+                msg = 'Unexpected Error Happen';
+
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: Text(msg)));
+
+              // if (_fbSignInResults == FBSignInResults.SignInCompleted)
+              //   Navigator.pushAndRemoveUntil(
+              //       context,
+              //       MaterialPageRoute(builder: (_) => HomePage()),
+              //       (route) => false);
+
+              if (mounted) {
+                setState(() {
+                  this._isLoading = false;
+                });
+              }
+            },
+            child: Image.asset(
+              'assets/images/fbook.png',
+              width: 50.0,
+            ),
+          ),
+        ],
       ),
     );
   }

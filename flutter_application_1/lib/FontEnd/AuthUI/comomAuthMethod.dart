@@ -5,7 +5,8 @@ import 'package:flutter_application_1/FontEnd/AuthUI/sign_up.dart';
 Widget commonTextFormField(
     {required String hintText,
     required String? Function(String?)? validator,
-    required TextEditingController textEditingController}) {
+    required TextEditingController textEditingController,
+    double bottomPadding = 50.0}) {
   return Container(
     child: Padding(
       padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 20.0),
@@ -54,38 +55,38 @@ Widget commonTextFormField(
 //   );
 // }
 
-Widget socialMediaInterationButtons() {
-  return Container(
-    width: double.maxFinite,
-    padding: EdgeInsets.all(30),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        GestureDetector(
-          onTap: () {
-            print('Google Pressed');
-          },
-          child: Image.asset(
-            'assets/images/google.png',
-            width: 50.0,
-          ),
-        ),
-        SizedBox(
-          width: 80,
-        ),
-        GestureDetector(
-          onTap: () {
-            print('Google Pressed');
-          },
-          child: Image.asset(
-            'assets/images/fbook.png',
-            width: 50.0,
-          ),
-        ),
-      ],
-    ),
-  );
-}
+// Widget socialMediaInterationButtons() {
+//   return Container(
+//     width: double.maxFinite,
+//     padding: EdgeInsets.all(30),
+//     child: Row(
+//       mainAxisAlignment: MainAxisAlignment.center,
+//       children: [
+//         GestureDetector(
+//           onTap: () {
+//             print('Google Pressed');
+//           },
+//           child: Image.asset(
+//             'assets/images/google.png',
+//             width: 50.0,
+//           ),
+//         ),
+//         SizedBox(
+//           width: 80,
+//         ),
+//         GestureDetector(
+//           onTap: () {
+//             print('Google Pressed');
+//           },
+//           child: Image.asset(
+//             'assets/images/fbook.png',
+//             width: 50.0,
+//           ),
+//         ),
+//       ],
+//     ),
+//   );
+// }
 
 Widget switchAnotherAuthScreen(
     BuildContext context, String buttonNameFirst, String buttonNameLast) {

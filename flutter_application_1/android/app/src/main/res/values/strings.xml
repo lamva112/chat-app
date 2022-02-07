@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Generation</string>
+
+    <string name="facebook_app_id">919908288887307</string> 
+    <string name="fb_login_protocol_scheme">fb919908288887307</string>
+</resources>
