@@ -1,6 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_application_1/BackEnd/firebase/OnlineDatabaseManagement/cloud_data_management.dart';
 import 'package:flutter_application_1/FontEnd/AuthUI/comomAuthMethod.dart';
+import 'package:flutter_application_1/FontEnd/AuthUI/home_page.dart';
 import 'package:loading_overlay/loading_overlay.dart';
 
 class TakePrimaryUserData extends StatefulWidget {
@@ -18,7 +21,8 @@ class _TakePrimaryUserDataState extends State<TakePrimaryUserData> {
 
   final TextEditingController _userName = TextEditingController();
   final TextEditingController _userAbout = TextEditingController();
-
+  final CloudStoreDataManagement _cloudStoreDataManagement =
+      CloudStoreDataManagement();
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -121,6 +125,36 @@ class _TakePrimaryUserDataState extends State<TakePrimaryUserData> {
                 this._isLoading = true;
               });
             }
+
+            final bool canRegisterNewUser = await _cloudStoreDataManagement
+                .checkThisUserAlreadyPresentOrNot(
+                    userName: this._userName.text);
+
+            String msg = '';
+
+            if (!canRegisterNewUser)
+              msg = 'User Name Already Present';
+            else {
+              final bool _userEntryResponse =
+                  await _cloudStoreDataManagement.registerNewUser(
+                      userName: this._userName.text,
+                      userAbout: this._userAbout.text,
+                      userEmail:
+                          FirebaseAuth.instance.currentUser!.email.toString());
+              if (_userEntryResponse) {
+                msg = 'User data Entry Successfully';
+
+                /// Calling Local Databases Methods To Intitialize Local Database with required MEthods
+                Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => HomePage()),
+                    (route) => false);
+              } else
+                msg = 'User Data Not Entry Successfully';
+            }
+
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(msg)));
 
             if (mounted) {
               setState(() {
