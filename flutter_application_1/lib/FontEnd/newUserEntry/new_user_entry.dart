@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_application_1/BackEnd/firebase/OnlineDatabaseManagement/cloud_data_management.dart';
 import 'package:flutter_application_1/FontEnd/AuthUI/comomAuthMethod.dart';
-import 'package:flutter_application_1/FontEnd/AuthUI/home_page.dart';
+import 'package:flutter_application_1/FontEnd/MainScreen/home_page.dart';
 import 'package:loading_overlay/loading_overlay.dart';
 
 class TakePrimaryUserData extends StatefulWidget {
