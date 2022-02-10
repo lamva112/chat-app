@@ -4,7 +4,7 @@ import 'package:flutter_application_1/BackEnd/firebase/Auth/fb_auth.dart';
 import 'package:flutter_application_1/BackEnd/firebase/Auth/google_auth.dart';
 import 'package:flutter_application_1/BackEnd/firebase/Auth/sign_up_auth.dart';
 import 'package:flutter_application_1/FontEnd/AuthUI/comomAuthMethod.dart';
-import 'package:flutter_application_1/FontEnd/AuthUI/home_page.dart';
+import 'package:flutter_application_1/FontEnd/MainScreen/home_page.dart';
 import 'package:flutter_application_1/FontEnd/newUserEntry/new_user_entry.dart';
 import 'package:flutter_application_1/Global_uses/enum_generation.dart';
 import 'package:flutter_application_1/Global_uses/reg_exp.dart';
