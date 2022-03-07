@@ -2,8 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_application_1/BackEnd/firebase/OnlineDatabaseManagement/cloud_data_management.dart';
+import 'package:flutter_application_1/BackEnd/sqlite_management/local_database_management.dart';
 import 'package:flutter_application_1/FontEnd/AuthUI/comomAuthMethod.dart';
 import 'package:flutter_application_1/FontEnd/MainScreen/home_page.dart';
+import 'package:flutter_application_1/FontEnd/MainScreen/main_screens.dart';
 import 'package:loading_overlay/loading_overlay.dart';
 
 class TakePrimaryUserData extends StatefulWidget {
@@ -21,8 +23,11 @@ class _TakePrimaryUserDataState extends State<TakePrimaryUserData> {
 
   final TextEditingController _userName = TextEditingController();
   final TextEditingController _userAbout = TextEditingController();
+
   final CloudStoreDataManagement _cloudStoreDataManagement =
       CloudStoreDataManagement();
+  final LocalDatabase _localDatabase = LocalDatabase();
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -34,7 +39,7 @@ class _TakePrimaryUserDataState extends State<TakePrimaryUserData> {
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.width,
             child: Form(
-              key: this._takeUserPrimaryInformationKey,
+              key: _takeUserPrimaryInformationKey,
               child: ListView(
                 shrinkWrap: true,
                 children: [
@@ -56,7 +61,7 @@ class _TakePrimaryUserDataState extends State<TakePrimaryUserData> {
                         return "Sorry,Only Emoji Not Supported";
                       return null;
                     },
-                    textEditingController: this._userName,
+                    textEditingController: _userName,
                   ),
                   commonTextFormField(
                     hintText: 'User About',
@@ -65,7 +70,7 @@ class _TakePrimaryUserDataState extends State<TakePrimaryUserData> {
                         return 'User About must have 6 characters';
                       return null;
                     },
-                    textEditingController: this._userAbout,
+                    textEditingController: _userAbout,
                   ),
                   _saveUserPrimaryInformation()
                 ],
@@ -115,20 +120,19 @@ class _TakePrimaryUserDataState extends State<TakePrimaryUserData> {
           ),
         ),
         onPressed: () async {
-          if (this._takeUserPrimaryInformationKey.currentState!.validate()) {
+          if (_takeUserPrimaryInformationKey.currentState!.validate()) {
             print('Validated');
 
             SystemChannels.textInput.invokeMethod('TextInput.hide');
 
             if (mounted) {
               setState(() {
-                this._isLoading = true;
+                _isLoading = true;
               });
             }
 
             final bool canRegisterNewUser = await _cloudStoreDataManagement
-                .checkThisUserAlreadyPresentOrNot(
-                    userName: this._userName.text);
+                .checkThisUserAlreadyPresentOrNot(userName: _userName.text);
 
             String msg = '';
 
@@ -137,17 +141,34 @@ class _TakePrimaryUserDataState extends State<TakePrimaryUserData> {
             else {
               final bool _userEntryResponse =
                   await _cloudStoreDataManagement.registerNewUser(
-                      userName: this._userName.text,
-                      userAbout: this._userAbout.text,
+                      userName: _userName.text,
+                      userAbout: _userAbout.text,
                       userEmail:
                           FirebaseAuth.instance.currentUser!.email.toString());
               if (_userEntryResponse) {
                 msg = 'User data Entry Successfully';
 
                 /// Calling Local Databases Methods To Intitialize Local Database with required MEthods
+                await _localDatabase.createTableToStoreImportantData();
+                final Map<String, dynamic> _importantFetchedData =
+                    await _cloudStoreDataManagement.getTokenFromCloudStore(
+                        userMail: FirebaseAuth.instance.currentUser!.email
+                            .toString());
+
+                await _localDatabase.insertOrUpdateDataForThisAccount(
+                    userName: _userName.text,
+                    userMail:
+                        FirebaseAuth.instance.currentUser!.email.toString(),
+                    userToken: _importantFetchedData["token"],
+                    userAbout: _userAbout.text,
+                    userAccCreationDate: _importantFetchedData["date"],
+                    userAccCreationTime: _importantFetchedData["time"]);
+                await _localDatabase.createTableForUserActivity(
+                    tableName: _userName.text);
+
                 Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (_) => HomePage()),
+                    MaterialPageRoute(builder: (_) => MainScreen()),
                     (route) => false);
               } else
                 msg = 'User Data Not Entry Successfully';
@@ -158,7 +179,7 @@ class _TakePrimaryUserDataState extends State<TakePrimaryUserData> {
 
             if (mounted) {
               setState(() {
-                this._isLoading = false;
+                _isLoading = false;
               });
             }
           } else {
